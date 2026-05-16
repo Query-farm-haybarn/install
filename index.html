@@ -1,220 +1,12 @@
-#!/bin/bash
-# This file is both a valid HTML page and a valid shell installer.
-# In a browser it renders the Haybarn install page.
-# Via `curl https://query-farm-haybarn.github.io/install | sh` it installs Haybarn.
-#
-# How the polyglot works:
-#   - Bash sees `#!/bin/bash`, skips lines starting with `<` or that look
-#     like tags (they're just shell commands that fail silently or are no-ops),
-#     and the HTML comment block `<!--` ... `-->` is hidden behind a `true` call.
-#   - The actual shell code lives below, outside the HTML comment.
-#   - The browser ignores everything outside recognised HTML tags.
-#
-true << 'HTMLEOF'
-<!--
-HTMLEOF
+#!/bin/bash -e
 
-cat << 'SHELLEOF' > /dev/null
--->
-<!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Install Haybarn</title>
-  <style>
-    :root {
-      --bg: #0f1117;
-      --surface: #1a1d27;
-      --border: #2a2d3a;
-      --accent: #f5c842;
-      --accent2: #e8a020;
-      --text: #e8eaf0;
-      --muted: #8b8fa8;
-      --code-bg: #12141e;
-      --green: #4ade80;
-    }
-    * { box-sizing: border-box; margin: 0; padding: 0; }
-    body {
-      background: var(--bg);
-      color: var(--text);
-      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
-      min-height: 100vh;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      padding: 3rem 1.5rem;
-    }
-    .logo {
-      font-size: 3rem;
-      margin-bottom: 0.5rem;
-    }
-    h1 {
-      font-size: 2.2rem;
-      font-weight: 700;
-      color: var(--accent);
-      letter-spacing: -0.02em;
-    }
-    .tagline {
-      color: var(--muted);
-      margin-top: 0.5rem;
-      font-size: 1rem;
-    }
-    .install-box {
-      margin: 2.5rem 0 1rem;
-      background: var(--code-bg);
-      border: 1px solid var(--border);
-      border-radius: 12px;
-      padding: 1.25rem 1.5rem;
-      width: 100%;
-      max-width: 600px;
-      display: flex;
-      align-items: center;
-      gap: 1rem;
-    }
-    .install-box code {
-      font-family: "JetBrains Mono", "Fira Code", monospace;
-      font-size: 1rem;
-      color: var(--green);
-      flex: 1;
-      word-break: break-all;
-    }
-    .copy-btn {
-      background: var(--accent);
-      color: #000;
-      border: none;
-      border-radius: 7px;
-      padding: 0.45rem 1rem;
-      font-weight: 600;
-      font-size: 0.85rem;
-      cursor: pointer;
-      white-space: nowrap;
-      transition: background 0.15s;
-    }
-    .copy-btn:hover { background: var(--accent2); }
-    .copy-btn.copied { background: var(--green); }
-    .note {
-      color: var(--muted);
-      font-size: 0.85rem;
-      max-width: 600px;
-      text-align: center;
-      line-height: 1.6;
-    }
-    .note a { color: var(--accent); text-decoration: none; }
-    .note a:hover { text-decoration: underline; }
-    .divider {
-      width: 100%;
-      max-width: 600px;
-      border: none;
-      border-top: 1px solid var(--border);
-      margin: 2rem 0;
-    }
-    .section-title {
-      font-size: 0.75rem;
-      text-transform: uppercase;
-      letter-spacing: 0.1em;
-      color: var(--muted);
-      margin-bottom: 1rem;
-      width: 100%;
-      max-width: 600px;
-    }
-    .alt-methods {
-      width: 100%;
-      max-width: 600px;
-      display: flex;
-      flex-direction: column;
-      gap: 0.75rem;
-    }
-    .alt-methods code {
-      display: block;
-      background: var(--code-bg);
-      border: 1px solid var(--border);
-      border-radius: 8px;
-      padding: 0.75rem 1rem;
-      font-family: "JetBrains Mono", "Fira Code", monospace;
-      font-size: 0.88rem;
-      color: var(--text);
-    }
-    .alt-methods .label {
-      font-size: 0.78rem;
-      color: var(--muted);
-      margin-bottom: 0.3rem;
-    }
-    footer {
-      margin-top: auto;
-      padding-top: 3rem;
-      color: var(--muted);
-      font-size: 0.8rem;
-      text-align: center;
-      line-height: 1.8;
-    }
-    footer a { color: var(--muted); }
-  </style>
-</head>
-<body>
-  <div class="logo">🌾</div>
-  <h1>Haybarn</h1>
-  <p class="tagline">An independent derived distribution of DuckDB · by <a href="https://query.farm" style="color:var(--accent);text-decoration:none">Query Farm</a></p>
-
-  <div class="install-box">
-    <code id="install-cmd">curl https://query-farm-haybarn.github.io/install | sh</code>
-    <button class="copy-btn" onclick="copyCmd()">Copy</button>
-  </div>
-
-  <p class="note">
-    Installs the latest release to <code style="color:var(--accent)">~/.haybarn/cli/latest/haybarn</code>
-    and symlinks it into <code style="color:var(--accent)">~/.local/bin</code> if available.<br/>
-    Supports Linux (x86_64, arm64) and macOS (x86_64, arm64).
-  </p>
-
-  <hr class="divider" />
-  <p class="section-title">Other install methods</p>
-
-  <div class="alt-methods">
-    <div>
-      <div class="label">Install a specific version</div>
-      <code>HAYBARN_VERSION=haybarn-v1.5.2-rc7 curl https://query-farm-haybarn.github.io/install | sh</code>
-    </div>
-    <div>
-      <div class="label">Download the script first (inspect before running)</div>
-      <code>curl -o install.sh https://query-farm-haybarn.github.io/install &amp;&amp; sh install.sh</code>
-    </div>
-  </div>
-
-  <hr class="divider" />
-
-  <p class="note">
-    <a href="https://github.com/Query-farm-haybarn/haybarn/releases">View releases on GitHub</a> ·
-    <a href="https://github.com/Query-farm-haybarn/haybarn">Source</a><br/><br/>
-    Not affiliated with or endorsed by the DuckDB Foundation.<br/>
-    DuckDB is a trademark of the DuckDB Foundation.
-  </p>
-
-  <footer>
-    &copy; Query Farm &nbsp;·&nbsp;
-    <a href="https://github.com/Query-farm-haybarn/haybarn">github.com/Query-farm-haybarn/haybarn</a>
-  </footer>
-
-  <script>
-    function copyCmd() {
-      navigator.clipboard.writeText(document.getElementById('install-cmd').textContent);
-      const btn = document.querySelector('.copy-btn');
-      btn.textContent = 'Copied!';
-      btn.classList.add('copied');
-      setTimeout(() => { btn.textContent = 'Copy'; btn.classList.remove('copied'); }, 2000);
-    }
-  </script>
-</body>
-</html>
-SHELLEOF
-
-# =============================================================================
-# SHELL INSTALLER — everything below here is executed by `curl ... | sh`
-# The browser never sees this; it's inside a <script> block from its perspective
-# =============================================================================
+# Haybarn Linux/OSX installer script
+# Haybarn is an independent derived distribution of DuckDB by Query Farm
+# Releases: https://github.com/Query-farm-haybarn/haybarn/releases
 
 GITHUB_REPO="Query-farm-haybarn/haybarn"
 GITHUB_API="https://api.github.com/repos/${GITHUB_REPO}/releases/latest"
+GITHUB_DOWNLOAD="https://github.com/${GITHUB_REPO}/releases/latest/download"
 
 main () {
     OS=$(uname -s)
@@ -314,10 +106,12 @@ main () {
     fi
 
     if [ "${TAG}" = "${LATEST_TAG}" ]; then
+        # Update symlink to latest
         rm -f "${LATEST}" || exit 1
         ln -s "${INST}" "${LATEST}" || exit 1
         echo "Updated symlink from ${LATEST}/haybarn to"
         echo "                     ${INST}/haybarn"
+
         echo
         echo "Hint: Append the following line to your shell profile:"
         echo 'export PATH="'"${LATEST}"'":$PATH'
@@ -327,6 +121,7 @@ main () {
         echo 'export PATH="'"${INST}"'":$PATH'
     fi
 
+    # Symlink into ~/.local/bin if it exists, is writable, and doesn't already have haybarn
     eval LOCALBIN="${HOME}/.local/bin"
     if [ "${TAG}" = "${LATEST_TAG}" ] && [ -d "${LOCALBIN}" ] && [ -w "${LOCALBIN}" ] && [ ! -f "${LOCALBIN}/haybarn" ]; then
         ln -s "${LATEST}/haybarn" "${LOCALBIN}/haybarn" || exit 1
